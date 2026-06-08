@@ -4,7 +4,7 @@ Backend-only microservices leave management system built with Python, FastAPI, S
 
 ## Repository
 
-- GitHub repository link: 
+- GitHub repository link: https://github.com/suchinthana00/LeaveManagementSystemNAGP
 
 ## Current Status
 
@@ -141,4 +141,4 @@ Fill these after pushing images:
 
 ## Demo Video
 
-- Demo recording Path: Video Demo.mp4
+- Demo recording Link: [Link](https://github.com/suchinthana00/LeaveManagementSystemNAGP/raw/refs/heads/main/Video%20Demo.mp4 "Download video")
