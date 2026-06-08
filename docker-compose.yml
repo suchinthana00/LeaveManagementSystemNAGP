@@ -1,0 +1,96 @@
+services:
+  consul:
+    image: hashicorp/consul:1.18
+    command: agent -server -bootstrap -ui -client=0.0.0.0
+    ports:
+      - "${CONSUL_HOST_PORT:-8500}:8500"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "${RABBITMQ_HOST_PORT:-5673}:5672"
+      - "${RABBITMQ_MANAGEMENT_HOST_PORT:-15673}:15672"
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth_service/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=auth-service
+      - SERVICE_HOST=auth-service
+      - SERVER_PORT=8001
+      - DATABASE_URL=sqlite:///./auth_service.db
+    depends_on:
+      - consul
+    ports:
+      - "${AUTH_HOST_PORT:-8001}:8001"
+
+  employee-service:
+    build:
+      context: .
+      dockerfile: services/employee_service/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=employee-service
+      - SERVICE_HOST=employee-service
+      - SERVER_PORT=8002
+      - DATABASE_URL=sqlite:///./employee_service.db
+    depends_on:
+      - consul
+    ports:
+      - "${EMPLOYEE_HOST_PORT:-8002}:8002"
+
+  leave-service:
+    build:
+      context: .
+      dockerfile: services/leave_service/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=leave-service
+      - SERVICE_HOST=leave-service
+      - SERVER_PORT=8003
+      - DATABASE_URL=sqlite:///./leave_service.db
+    depends_on:
+      - consul
+      - rabbitmq
+    ports:
+      - "${LEAVE_HOST_PORT:-8003}:8003"
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification_service/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=notification-service
+      - SERVICE_HOST=notification-service
+      - SERVER_PORT=8004
+      - DATABASE_URL=sqlite:///./notification_service.db
+    depends_on:
+      - rabbitmq
+    ports:
+      - "${NOTIFICATION_HOST_PORT:-8004}:8004"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - SERVICE_NAME=gateway
+      - SERVICE_HOST=gateway
+      - SERVER_PORT=8000
+      - DATABASE_URL=sqlite:///./gateway.db
+    depends_on:
+      - auth-service
+      - employee-service
+      - leave-service
+      - notification-service
+    ports:
+      - "${GATEWAY_HOST_PORT:-8000}:8000"

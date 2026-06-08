@@ -1,0 +1,148 @@
+{
+  "info": {
+    "name": "Leave Management System",
+    "description": "Gateway-first API collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const url = pm.request.url.toString();",
+          "const isLogin = url.includes('/api/auth/login');",
+          "if (!isLogin) {",
+          "  const token = pm.collectionVariables.get('token') || pm.environment.get('token');",
+          "  if (token) {",
+          "    pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${token}` });",
+          "  }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:9000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login response is success', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const data = pm.response.json();",
+              "if (data && data.access_token) {",
+              "  pm.collectionVariables.set('token', data.access_token);",
+              "  pm.environment.set('token', data.access_token);",
+              "}",
+              "pm.test('Access token is present', function () {",
+              "  pm.expect(pm.collectionVariables.get('token') || pm.environment.get('token')).to.be.ok;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"employee1\",\n  \"password\": \"Password@123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth Me",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me"
+      }
+    },
+    {
+      "name": "Leave Balances",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leave/balances"
+      }
+    },
+    {
+      "name": "Apply Leave",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leave/apply",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"leave_type\": \"Casual\",\n  \"start_date\": \"2026-06-20\",\n  \"end_date\": \"2026-06-21\",\n  \"number_of_days\": 2,\n  \"reason\": \"Family event\",\n  \"reporting_manager_user_id\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "Manager Requests",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leave/manager/requests?status_filter=Pending"
+      }
+    },
+    {
+      "name": "Leave History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leave/history?page=1&page_size=10"
+      }
+    }
+  ]
+}
